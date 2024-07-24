@@ -1,0 +1,6 @@
+instalar o xampp
+criar um usuario para o acesso ao banco de dados
+instalar as dependências
+executar o arquivo main.py para criar e configurar o database e as tabelas.
+compilar o programa
+executar normalmente. 
