@@ -1,9 +1,9 @@
 import customtkinter as ctk
 from widgets.widgetAlerta import WidgetAlerta
 import threading
-from models.categoria import Categoria
-from models.prioridade import Prioridade
-import datetime
+from crud import atendimentoCRUD
+from models.model import Categoria, Prioridade
+
 
 class TelaAtenderChamado(ctk.CTkToplevel):
     def __init__(self, master, chamado):
@@ -38,11 +38,10 @@ class TelaAtenderChamado(ctk.CTkToplevel):
         config_textbox_chamado = {'fg_color':'#f2f2f2','font':ctk.CTkFont('Inter', weight='normal', size=15),
                                   'text_color':'black', 'border_color':'#f2f2f2'}
         
-        self.carregar_dados()
         self.varCategoria = ctk.StringVar()
-        self.varCategoria.set(self.chamado.categoria.nome_categoria)
+        self.varCategoria.set(self.chamado.get_categoria())
         self.varPrioridade = ctk.StringVar()
-        self.varPrioridade.set(self.chamado.prioridade.nome_prioridade)
+        self.varPrioridade.set(self.chamado.get_prioridade())
         
         self.frMain  = ctk.CTkScrollableFrame(self, fg_color='white', bg_color='transparent', border_width=1, border_color='black', corner_radius=0)
         self.frMain.master = self.frMain._parent_canvas
@@ -62,13 +61,13 @@ class TelaAtenderChamado(ctk.CTkToplevel):
         self.tbDetalhesChamado.insert('0.0', self.chamado.detalhes)
         self.tbDetalhesChamado.configure(state=ctk.DISABLED)
         self.lbCategoriaChamado = ctk.CTkLabel(self.frMain, text='Categoria do Chamado', **config_label)
-        self.cbCategoriaChamado = ctk.CTkComboBox(self.frMain, **config_combobox_chamado,values=self.categorias, variable=self.varCategoria)
+        self.cbCategoriaChamado = ctk.CTkComboBox(self.frMain, **config_combobox_chamado,values=Categoria.get_categorias_name(), variable=self.varCategoria)
         self.cbCategoriaChamado.configure(state=ctk.DISABLED)
         self.lbPrioridadeChamado = ctk.CTkLabel(self.frMain, text='Prioridade do Chamado', **config_label)
-        self.cbPrioridadeChamado = ctk.CTkComboBox(self.frMain, **config_combobox_chamado,values=self.prioridades, variable=self.varPrioridade)
+        self.cbPrioridadeChamado = ctk.CTkComboBox(self.frMain, **config_combobox_chamado,values=Prioridade.get_prioridades_name(), variable=self.varPrioridade)
         self.cbPrioridadeChamado.configure(state=ctk.DISABLED)
         self.lbDescricaoAtendimento = ctk.CTkLabel(self.frMain, text='Descrição do Atendimento', **config_label)
-        self.tbDescricaoAtendimento = ctk.CTkTextbox(self.frMain, **config_textbox_chamado)
+        self.tbDetalhesAtendimento = ctk.CTkTextbox(self.frMain, **config_textbox_chamado)
         
         self.btCancelar = ctk.CTkButton(self.frMain, text='Cancelar', command=self.fechar_tela, font= ctk.CTkFont('Inter',weight='bold', size=20),
                                         height=40, fg_color='white', hover_color='gray', text_color='black')
@@ -89,47 +88,23 @@ class TelaAtenderChamado(ctk.CTkToplevel):
         self.lbPrioridadeChamado.pack(anchor=ctk.W, padx=20, pady=(0,10))
         self.cbPrioridadeChamado.pack(fill=ctk.X, padx=20, pady=(0,10))
         self.lbDescricaoAtendimento.pack(anchor=ctk.W, padx=20, pady=(0,10))
-        self.tbDescricaoAtendimento.pack(fill=ctk.BOTH, expand=True, padx=20, pady=(0,10))
+        self.tbDetalhesAtendimento.pack(fill=ctk.BOTH, expand=True, padx=20, pady=(0,10))
         self.btFinalizar.pack(side=ctk.RIGHT, padx=20, pady=30)
         self.btCancelar.pack(side=ctk.RIGHT, padx=10, pady=30)
     
-    def carregar_dados(self):
-        self.categorias = None
-        self.prioridades = None
-        try:
-            self.categorias = [x.nome_categoria for x in Categoria.select()]
-            self.prioridades = [x.nome_prioridade for x in Prioridade.select()]
-        except Exception as e:
-            print(f"Erro ao carregar dados do database: {e}")
-    
     def atender_chamado(self):
-        suporte_atendimento = self.root.usuario_logado
-        descricao_atendimento = self.tbDescricaoAtendimento.get('0.0', ctk.END)
-        try:
-            if descricao_atendimento:
-                data_fechamento = datetime.datetime.now()
-                self.chamado.situacao = 2
-                self.chamado.descricao_atendimento = descricao_atendimento
-                self.chamado.data_fechamento = data_fechamento
-                self.chamado.suporte_atendimento = suporte_atendimento
-                self.chamado.save()
-                self.master.telaChamados.carregar_dados_chamados()
+        id_chamado = self.chamado.id
+        suporte = self.root.usuario_logado.id
+        detalhes = self.tbDetalhesAtendimento.get('0.0', ctk.END)
+        
+        retorno = atendimentoCRUD.atender_chamado_id(id_chamado, suporte, detalhes)
+        thead = threading.Thread(target=lambda : WidgetAlerta(self.root.frConteudo, retorno.get('mensagem'),retorno.get('tipo')))
+        thead.start()
+        if retorno.get('tipo') == 'sucesso':
+                self.master.telaChamados.limpar_frChamados()
+                self.master.telaChamados.consultar_chamados()
                 self.master.telaChamados.carregar_chamados()
-                try:
-                    thead = threading.Thread(target=lambda : WidgetAlerta(self.root.frConteudo, 'Chamado finalizado com sucesso!', 'sucesso'))
-                    thead.start()
-                except Exception as e:
-                    pass
-                self.destroy()
-            else:
-                try:
-                    thead = threading.Thread(target=lambda : WidgetAlerta(self,'O campo de descrição precisa ser preenchido!', 'aviso'))
-                    thead.start()
-                except Exception as e:
-                    pass
-        except Exception as e:
-                thead = threading.Thread(target=lambda : WidgetAlerta(self,'Ocorreu um erro finalizar atendimento do chamado!', 'erro'))
-                thead.start()
+                self.fechar_tela()
             
     def fechar_tela(self):
         self.destroy()

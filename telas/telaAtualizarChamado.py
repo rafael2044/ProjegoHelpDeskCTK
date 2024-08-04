@@ -1,8 +1,8 @@
 import customtkinter as ctk
 from widgets.widgetAlerta import WidgetAlerta
+from models.model import Categoria, Prioridade
 import threading
-from models.categoria import Categoria
-from models.prioridade import Prioridade
+
 
 class TelaAtualizarChamado(ctk.CTkToplevel):
     def __init__(self, master, chamado, privilegio):
@@ -38,11 +38,10 @@ class TelaAtualizarChamado(ctk.CTkToplevel):
         config_textbox_chamado = {'fg_color':'#f2f2f2','font':ctk.CTkFont('Inter', weight='normal', size=15),
                                   'text_color':'black', 'border_color':'#f2f2f2'}
         
-        self.carregar_dados()
         self.varCategoria = ctk.StringVar()
-        self.varCategoria.set(self.chamado.categoria.nome_categoria)
+        self.varCategoria.set(self.chamado.get_categoria())
         self.varPrioridade = ctk.StringVar()
-        self.varPrioridade.set(self.chamado.prioridade.nome_prioridade)
+        self.varPrioridade.set(self.chamado.get_prioridade())
         
         self.frMain  = ctk.CTkScrollableFrame(self, fg_color='white', bg_color='transparent', border_width=1, border_color='black', corner_radius=0)
         self.frMain.master = self.frMain._parent_canvas
@@ -60,9 +59,9 @@ class TelaAtualizarChamado(ctk.CTkToplevel):
         self.tbDetalhesChamado = ctk.CTkTextbox(self.frMain, **config_textbox_chamado)
         self.tbDetalhesChamado.insert('0.0', self.chamado.detalhes)
         self.lbCategoriaChamado = ctk.CTkLabel(self.frMain, text='Categoria do Chamado', **config_label)
-        self.cbCategoriaChamado = ctk.CTkComboBox(self.frMain, **config_combobox_chamado,values=self.categorias, variable=self.varCategoria)
+        self.cbCategoriaChamado = ctk.CTkComboBox(self.frMain, **config_combobox_chamado,values=Categoria.get_categorias_name(), variable=self.varCategoria)
         self.lbPrioridadeChamado = ctk.CTkLabel(self.frMain, text='Prioridade do Chamado', **config_label)
-        self.cbPrioridadeChamado = ctk.CTkComboBox(self.frMain, **config_combobox_chamado,values=self.prioridades, variable=self.varPrioridade)
+        self.cbPrioridadeChamado = ctk.CTkComboBox(self.frMain, **config_combobox_chamado,values=Prioridade.get_prioridades_name(), variable=self.varPrioridade)
         self.btCancelar = ctk.CTkButton(self.frMain, text='Cancelar', command=self.fechar_tela, font= ctk.CTkFont('Inter',weight='bold', size=20),
                                         height=40, fg_color='white', hover_color='gray', text_color='black')
         self.btAtualizar = ctk.CTkButton(self.frMain, text='Atualizar', command=self.atualizar_chamado, **config_button)
@@ -84,15 +83,6 @@ class TelaAtualizarChamado(ctk.CTkToplevel):
         self.btAtualizar.pack(side=ctk.RIGHT, padx=20, pady=30)
         self.btCancelar.pack(side=ctk.RIGHT, padx=10, pady=30)
     
-    def carregar_dados(self):
-        self.categorias = None
-        self.prioridades = None
-        try:
-            self.categorias = [x.nome_categoria for x in Categoria.select()]
-            self.prioridades = [x.nome_prioridade for x in Prioridade.select()]
-        except Exception as e:
-            print(f"Erro ao carregar dados do database: {e}")
-    
     def atualizar_chamado(self):
         novo_titulo = self.entryTituloChamado.get()
         novo_detalhes = self.tbDetalhesChamado.get('0.0', ctk.END)
@@ -101,8 +91,8 @@ class TelaAtualizarChamado(ctk.CTkToplevel):
         try:
             self.chamado.titulo = novo_titulo
             self.chamado.detalhes = novo_detalhes
-            self.chamado.categoria = Categoria.get(Categoria.nome_categoria == nova_categoria)
-            self.chamado.prioridade = Prioridade.get(Prioridade.nome_prioridade == nova_prioridade)
+            self.chamado.categoria = Categoria.get_categoria_id(nova_categoria)
+            self.chamado.prioridade = Prioridade.get_prioridade_id(nova_prioridade)
             self.chamado.save()
             self.master.telaChamados.carregar_chamados()
             try:

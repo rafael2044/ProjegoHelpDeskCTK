@@ -26,8 +26,8 @@ class WidgetUsuario(ctk.CTkFrame):
         config_frame = {'fg_color':'transparent', 'bg_color':'transparent'}
         self.frId = ctk.CTkFrame(self, **config_frame)
         self.frNomeUsuario = ctk.CTkFrame(self, **config_frame)
-        self.frLoginUsuario = ctk.CTkFrame(self, **config_frame)
-        self.frPrivilegio = ctk.CTkFrame(self, **config_frame)
+        self.frLoginUsuario = ctk.CTkFrame(self, **config_frame, width=200)
+        self.frPrivilegio = ctk.CTkFrame(self, **config_frame, width=200)
         self.frComandos = ctk.CTkFrame(self, **config_frame)
         
         
@@ -37,12 +37,12 @@ class WidgetUsuario(ctk.CTkFrame):
         self.lbCampoPrivilegioUsuario  =ctk.CTkLabel(self.frPrivilegio, text='Privilegio', **config_label_campos)
         
         self.lbDadosId = ctk.CTkLabel(self.frId, text=self.usuario.id, **config_label_dados)
-        self.lbDadosNomeUsuario = ctk.CTkLabel(self.frNomeUsuario, text=self.usuario.nome_usuario, **config_label_dados)
-        self.lbDadosLoginUsuario = ctk.CTkLabel(self.frLoginUsuario, text=self.usuario.login_usuario, **config_label_dados)
-        self.lbDadosPrivilegioUsuario  =ctk.CTkLabel(self.frPrivilegio, text=self.usuario.privilegio_usuario.nome_privilegio, **config_label_dados)
+        self.lbDadosNomeUsuario = ctk.CTkLabel(self.frNomeUsuario, text=self.usuario.nome, **config_label_dados)
+        self.lbDadosLoginUsuario = ctk.CTkLabel(self.frLoginUsuario, text=self.usuario.usuario, **config_label_dados)
+        self.lbDadosPrivilegioUsuario  =ctk.CTkLabel(self.frPrivilegio, text=self.usuario.get_privilegio(), **config_label_dados)
         
-        self.btEditar = ctk.CTkButton(self.frComandos, text='Editar')
-        self.btExcluir = ctk.CTkButton(self.frComandos, text='Excluir')
+        self.btEditar = ctk.CTkButton(self.frComandos, text='Editar', fg_color='#0d6efd', font=ctk.CTkFont('Inter', weight='bold', size=18))
+        self.btExcluir = ctk.CTkButton(self.frComandos, text='Excluir', fg_color='#dc3545', font=ctk.CTkFont('Inter', weight='bold', size=18))
             
         
     def carregar_widgets(self):
@@ -84,5 +84,5 @@ class WidgetUsuario(ctk.CTkFrame):
             self.configure(fg_color="#f2f2f2")
             
     def carregar_tela(self):
-        self.pack(fill=ctk.X, padx=5, pady=(5))
+        self.pack(fill=ctk.X, padx=5,pady=5)
         

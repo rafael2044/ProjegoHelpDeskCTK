@@ -1,8 +1,8 @@
 import customtkinter as ctk
 from widgets.widgetAlerta import WidgetAlerta
+from models.model import Privilegio
 import threading
-from models.privilegio import Privilegio
-from models.usuario import Usuario
+from crud import usuarioCRUD
 
 class TelaCadastrarUsuario(ctk.CTkToplevel):
     def __init__(self, master):
@@ -18,7 +18,7 @@ class TelaCadastrarUsuario(ctk.CTkToplevel):
         self.configure(bg_color='transparent')
         self.update()
         WIDTH = 600
-        HEIGHT = 500
+        HEIGHT = 600
         POS_X = int((self.root.winfo_screenwidth() - WIDTH) / 2)
         POS_Y = int((self.root.winfo_screenheight() - HEIGHT) /2)
         self.geometry(f"{WIDTH}x{HEIGHT}+{POS_X}+{POS_Y}")
@@ -29,18 +29,17 @@ class TelaCadastrarUsuario(ctk.CTkToplevel):
                               'border_color':'#f2f2f2', 'height':40}
         config_button = {'fg_color':'#0d6efd', 'font':ctk.CTkFont('Inter',weight='bold', size=20), 'height':40}
         
-        config_combobox_chamado = {'height':40, 'fg_color':'#f2f2f2','font':ctk.CTkFont('Inter', weight='normal', size=15),
+        config_combobox_chamado = {'height':40, 'fg_color':'#f2f2f2','font':ctk.CTkFont('Inter', weight='normal', size=20),
                                 'text_color':'black', 'border_color':'#f2f2f2', 'state':'readonly',
-                                'width':250,'button_color':'#0d6efd', 'dropdown_font':ctk.CTkFont('Inter', weight='normal', size=15)}
+                                'width':250,'button_color':'#0d6efd', 'dropdown_font':ctk.CTkFont('Inter', weight='normal', size=20)}
         
         
-        self.carregar_dados()
+        self.privilegios = Privilegio.get_privilegios_name()
         self.varPrivilegio= ctk.StringVar()
         self.varPrivilegio.set(self.privilegios[0])
    
         
-        self.frMain  = ctk.CTkScrollableFrame(self, fg_color='white', bg_color='transparent', border_width=1, border_color='black', corner_radius=0)
-        self.frMain.master = self.frMain._parent_canvas
+        self.frMain  = ctk.CTkFrame(self, fg_color='white', bg_color='transparent', border_width=1, border_color='black', corner_radius=0)
         self.frTitulo = ctk.CTkFrame(self.frMain, fg_color='transparent', bg_color='transparent', height=20)
         
         self.btFechar = ctk.CTkButton(self.frTitulo, text='X',width=30, height=30, fg_color='transparent', bg_color='transparent',
@@ -73,7 +72,7 @@ class TelaCadastrarUsuario(ctk.CTkToplevel):
         self.lbNomeUsuario.pack(anchor=ctk.W, padx=20, pady=(0,10))
         self.entryNomeUsuario.pack(fill=ctk.X, padx=20, pady=(0,10))
         self.lbLoginUsuario.pack(anchor=ctk.W, padx=20, pady=(0,10), )
-        self.entryLoginUsuario.pack(padx=20, pady=(0,10), fill=ctk.BOTH, expand=True)
+        self.entryLoginUsuario.pack(padx=20, pady=(0,10), fill=ctk.X)
         self.lbSenhaUsuario.pack(anchor=ctk.W, padx=20, pady=(0,10))
         self.entrySenhaUsuario.pack(fill=ctk.X, padx=20, pady=0)
         self.lbPrivilegioChamado.pack(anchor=ctk.W, padx=20, pady=(0,10))
@@ -81,42 +80,21 @@ class TelaCadastrarUsuario(ctk.CTkToplevel):
         self.btCriar.pack(side=ctk.RIGHT, padx=20, pady=30)
         self.btCancelar.pack(side=ctk.RIGHT, padx=10, pady=30)
     
-    def carregar_dados(self):
-        self.privilegios = None
-        try:
-            self.privilegios = [x.nome_privilegio for x in Privilegio.select()]
-        except Exception as e:
-            print(f"Erro ao carregar dados do database: {e}")
-    
     def criar_usuario(self):
-        nome_usuario = self.entryNomeUsuario.get()
-        login_usuario = self.entryLoginUsuario.get()
-        senha_usuario = self.entrySenhaUsuario.get()
-        privilegio_usuario = Privilegio.get(Privilegio.nome_privilegio == self.cbPrivilegioChamado.get())
+        nome = self.entryNomeUsuario.get()
+        usuario = self.entryLoginUsuario.get()
+        senha = self.entrySenhaUsuario.get()
+        privilegio = Privilegio.get_privilegio_id(self.cbPrivilegioChamado.get())
         
         try:
-            query = 1
-            try:
-                query = not(Usuario.get(Usuario.login_usuario == login_usuario))
-            except Exception as e:
-                pass
-            if query:
-                novo_usuario = Usuario(nome_usuario = nome_usuario, login_usuario=login_usuario,
-                                   senha_usuario = senha_usuario, privilegio_usuario = privilegio_usuario)
-                novo_usuario.save()
-                try:
-                    thead = threading.Thread(target=lambda : WidgetAlerta(self.root.frConteudo, f'Usuario {login_usuario} cadastrado com sucesso!', 'sucesso'))
-                    thead.start()
-                except Exception as e:
-                    pass
-                self.limpar_campos()
-            else:
-                try:
-                    thead = threading.Thread(target=lambda : WidgetAlerta(self.root.frConteudo, f'O Usuario {login_usuario} já existe!', 'aviso'))
-                    thead.start()
-                except Exception as e:
-                    pass
-            
+            retorno = usuarioCRUD.adicionar_usuario(nome, usuario, senha, privilegio)
+            thead = threading.Thread(target=lambda : WidgetAlerta(self,retorno['mensagem'], retorno['tipo']))
+            thead.start()
+            if retorno['tipo'] == 'sucesso':
+                self.entryNomeUsuario.delete('0', ctk.END)
+                self.entryLoginUsuario.delete('0', ctk.END)
+                self.entrySenhaUsuario.delete('0', ctk.END)
+                
         except Exception as e:
                 thead = threading.Thread(target=lambda : WidgetAlerta(self,'Ocorreu um erro ao cadastrar o usuarios!', 'erro'))
                 thead.start()

@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from peewee import DoesNotExist
-from models.usuario import Usuario
+from models.model import Usuario
 from widgets.widgetAlerta import WidgetAlerta
 import threading
 
@@ -47,7 +47,7 @@ class TelaLogin(ctk.CTkFrame):
     def carregar_widgets(self):
 
         self.frCentral.place(rely=0.5, relx=0.5, anchor=ctk.CENTER,
-                             relwidth=0.35, relheight=0.7)
+                             relwidth=0.40, relheight=0.6)
         
         self.lbNomeSistema.pack(pady=(50,20))
         self.lbEntrar.pack()
@@ -63,9 +63,9 @@ class TelaLogin(ctk.CTkFrame):
         usuario = self.entryUsuario.get()
         senha = self.entrySenha.get()
         try:
-            retorno_usuario = Usuario.get(Usuario.login_usuario == usuario)
-            if retorno_usuario.senha_usuario == senha:
-                    self.master.PRIVILEGIO = retorno_usuario.privilegio_usuario.nome_privilegio
+            retorno_usuario = Usuario.get(Usuario.usuario == usuario)
+            if retorno_usuario.senha == senha:
+                    self.master.PRIVILEGIO = retorno_usuario.get_privilegio()
                     self.master.criar_widgets()
                     self.master.carregar_widgets()
                     self.master.usuario_logado = retorno_usuario
@@ -79,12 +79,6 @@ class TelaLogin(ctk.CTkFrame):
         except DoesNotExist as e:
             try:
                 process_thread = threading.Thread(target=lambda : WidgetAlerta(self, 'O usuario não existe!', 'alerta'))
-                process_thread.start()
-            except Exception as e:
-                print(f"{e}")
-        except Exception as e:
-            try:
-                process_thread = threading.Thread(target=lambda : WidgetAlerta(self, 'Erro ao efetuar login. Chame o suporte!', 'erro'))
                 process_thread.start()
             except Exception as e:
                 print(f"{e}")

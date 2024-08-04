@@ -5,7 +5,7 @@ from PIL import Image
 
 class TelaMenuUsuario(ctk.CTkFrame):
     def __init__(self, master, button):
-        super().__init__(master, corner_radius=0, bg_color='#bed0e8', fg_color='#bed0e8')
+        super().__init__(master, corner_radius=0, bg_color='#ced4da', fg_color='#ced4da')
         self.master=master
         self.button=button
         self.criar_widgets()
@@ -21,12 +21,12 @@ class TelaMenuUsuario(ctk.CTkFrame):
         icon_sair = ctk.CTkImage(Image.open(iconSair), size=(16,16))
         icon_usuario = ctk.CTkImage(Image.open(iconUsuario), size=(16,16))
         self.btPerfil = ctk.CTkButton(self, text='Meu Perfil',image=icon_usuario, compound=ctk.LEFT,
-                                      command=self.master.carregar_tela_usuario ,**config_button)
+                                      command=self.master.exibir_telaUsuario ,**config_button)
         self.btSair = ctk.CTkButton(self, text='Sair', image=icon_sair, compound=ctk.LEFT,
                                     command=self.sair, **config_button)
     
     def sair(self):
-        self.master.carregar_tela_login()
+        self.master.exibir_telaLogin()
         self.destroy()
     def carregar_widgets(self):
         self.btPerfil.pack(pady=(20,0))

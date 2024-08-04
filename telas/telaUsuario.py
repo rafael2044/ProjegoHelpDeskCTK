@@ -16,7 +16,7 @@ class TelaUsuario(ctk.CTkFrame):
         
     def configurar_tela(self):
         self.configure(bg_color='transparent')
-        self.configure(fg_color='white')
+        self.configure(fg_color='#f7f7f7')
         self.configure(corner_radius=20)
         
     def criar_widgets(self):
@@ -26,9 +26,9 @@ class TelaUsuario(ctk.CTkFrame):
         config_button = {'fg_color':'#0d6efd', 'font':ctk.CTkFont('Inter',weight='bold', size=20), 'height':40}
         self.lbTitulo = ctk.CTkLabel(self, text='Minhas Informações', **config_label)
         self.entryNome  =ctk.CTkEntry(self,**config_entry)
-        self.entryNome.insert('0', self.usuario_logado.nome_usuario)
+        self.entryNome.insert('0', self.usuario_logado.nome)
         self.entryUsuario = ctk.CTkEntry(self, **config_entry)
-        self.entryUsuario.insert('0', self.usuario_logado.login_usuario)
+        self.entryUsuario.insert('0', self.usuario_logado.usuario)
         self.entryUsuario.configure(state=ctk.DISABLED)
         self.btAtualizar = ctk.CTkButton(self, text='Atualizar Perfil', command=self.atualizar_nome, **config_button)
         self.lbAlterarSenha = ctk.CTkLabel(self, text='Alterar Senha', **config_label)
@@ -94,7 +94,7 @@ class TelaUsuario(ctk.CTkFrame):
             
 
     def carregar_tela(self):
-        self.pack(fill=ctk.BOTH, expand=True, padx=300, pady=100)
+        self.place(relx=0.5, rely=0.5, relwidth=0.5, relheight=0.7, anchor=ctk.CENTER)
         
         
         

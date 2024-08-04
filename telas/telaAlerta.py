@@ -26,6 +26,7 @@ class TelaAlerta(ctk.CTkToplevel):
         POS_Y = int((WIN_HEIGHT/2)-(HEIGHT/2))
         self.geometry(f"{WIDTH}x{HEIGHT}+{POS_X}+{POS_Y}")
         self.update()
+        self.resizable(False, False)
         self.focus_force()
         
     def criar_widgets(self):

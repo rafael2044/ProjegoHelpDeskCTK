@@ -1,12 +1,8 @@
 import customtkinter as ctk
 from PIL import Image
 from assets.imagens.image import imgInternet,imgEquipamento, imgSistema, imgSoftware
-from models.setor import Setor
-from models.categoria import Categoria
-from models.prioridade import Prioridade
-from models.situacao import Situacao
-from models.chamado import Chamado
-from models.usuario import Usuario
+from crud import setorCRUD, chamadoCRUD
+from models.model import Categoria, Prioridade
 from widgets.widgetAlerta import WidgetAlerta
 import threading
 
@@ -81,12 +77,7 @@ class TelaNovoChamado(ctk.CTkScrollableFrame):
         
         
         self.frChamado =ctk.CTkFrame(self.frMain, **config_frame_ajuda, width=600)
-        self.frRodape = ctk.CTkFrame(self, bg_color='transparent', fg_color='transparent', height=50)
         
-        self.lbNomeSistema = ctk.CTkLabel(self.frRodape, text="helpdesk", font=ctk.CTkFont("Inter", weight='bold', size=20),
-                                     text_color='#0d6efd')
-        self.lbCopyright = ctk.CTkLabel(self.frRodape, text="© 2024 Rafael. Todos os direitos reservados", font=ctk.CTkFont("Inter", weight='normal', size=17),
-                                     text_color='gray')
         self.lbEviarChamado = ctk.CTkLabel(self.frChamado, text='Enviar um novo chamado de TI',
                                            font=ctk.CTkFont('Inter', weight='bold', size=25),
                                            text_color='black')
@@ -133,23 +124,17 @@ class TelaNovoChamado(ctk.CTkScrollableFrame):
         
     def carregar_dados(self):
         self.setores = None
-        self.categorias = None
-        self.prioridades = None
+        self.categorias = Categoria.get_categorias_name()
+        self.prioridades = Prioridade.get_prioridades_name()
         try:
-            self.setores = [x.nome_setor for x in Setor.select()]
-            self.categorias = [x.nome_categoria for x in Categoria.select()]
-            self.prioridades = [x.nome_prioridade for x in Prioridade.select()]
+            self.setores = setorCRUD.seleciona_nome_setores()
         except Exception as e:
             print(f"Erro ao carregar dados do database: {e}")
             
     def carregar_widgets(self):
         self.frMain.pack()
         
-        self.frRodape.pack(padx=5, fill=ctk.X, anchor=ctk.W)
-        self.lbNomeSistema.pack(padx=5, pady=5, anchor=ctk.W)
-        ctk.CTkFrame(self.frRodape, height=2, fg_color='gray').pack(fill=ctk.X, padx=5)
-        self.lbCopyright.pack(padx=5, anchor=ctk.W)
-        
+    
         self.lbTitulo.pack(pady=20)
         self.lbInstrucoes.pack()
         
@@ -192,35 +177,23 @@ class TelaNovoChamado(ctk.CTkScrollableFrame):
         self.btEnviar.pack(padx=10, pady=10, fill=ctk.X)
         
     def enviar_chamado(self):
+        id_usuario = self.root.usuario_logado.id
         titulo = self.entryTituloChamado.get()
-        setor = self.varSetor.get()
-        categoria = self.varCategoria.get()
-        prioridade = self.varPrioridade.get()
+        setor = setorCRUD.selecionar_id_setor_por_nome(self.varSetor.get())
+        categoria = Categoria.get_categoria_id(self.varCategoria.get())
+        prioridade = Prioridade.get_prioridade_id(self.varPrioridade.get())
         detalhes = self.txDetalhe.get('0.0', ctk.END)
         
-        if titulo and detalhes:
-            novo_chamado = Chamado(usuario_solicitante=self.root.usuario_logado,
-                                   titulo=titulo, setor=Setor.get(Setor.nome_setor==setor),
-                                   categoria=Categoria.get(Categoria.nome_categoria==categoria),
-                                   prioridade=Prioridade.get(Prioridade.nome_prioridade == prioridade),
-                                   detalhes=detalhes, situacao=Situacao.get(Situacao.id==1),
-                                   suporte_atendimento=Usuario.get(Usuario.id == 1),
-                                   descricao_atendimento = ' ')
-            novo_chamado.save()
+        retorno = chamadoCRUD.adicionar_chamado(id_usuario, titulo, setor, categoria,
+                                                prioridade, detalhes)
+        
+        if retorno['tipo'] == 'sucesso':
             self.entryTituloChamado.delete('0', ctk.END)
             self.txDetalhe.delete('0.0', ctk.END)
-            
-            try:
-                thead = threading.Thread(target=lambda : WidgetAlerta(self,f'O chamado foi aberto! Num. {novo_chamado.id}', 'sucesso'))
-                thead.start()
-            except Exception as e:
-                pass
-        else:
-            try:
-                thead = threading.Thread(target=lambda : WidgetAlerta(self,f'O campos de Titulo do Chamado e Detalhes precisam ser preenchido!', 'alerta'))
-                thead.start()
-            except Exception as e:
-                pass
+        
+        thead = threading.Thread(target=lambda : WidgetAlerta(self,retorno['mensagem'], retorno['tipo']))
+        thead.start()
+        
         
     def carregar_tela(self):
         self.pack(fill=ctk.BOTH, expand=True)
