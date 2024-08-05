@@ -4,8 +4,11 @@ from PIL import Image
 from widgets.widgetChamado import WidgetChamado
 from crud import chamadoCRUD, atendimentoCRUD
 from models.model import Privilegio
+import re
 
 class TelaMeusChamados(ctk.CTkFrame):
+    ALFANUMERIC = ['a','b','c','d','e','f','g','h','j','k','l','m','n','o','p','q','s','t','u','v','w',
+                    'x','y','z','1','2','3','4','5','6','7','8','9','.',',','space','backspace','return']
     def __init__(self, master, root):
         super().__init__(master)
         self.root = root
@@ -27,7 +30,7 @@ class TelaMeusChamados(ctk.CTkFrame):
         icon_lupa = ctk.CTkImage(Image.open(iconLupa), size=(24,24))
         
         self.frMain = ctk.CTkFrame(self, bg_color='transparent', fg_color='transparent')
-        self.frPesquisa = ctk.CTkFrame(self.frMain, bg_color='transparent', fg_color='transparent')
+        self.frPesquisa = ctk.CTkFrame(self.frMain, bg_color='transparent', fg_color='transparent', height=120)
         self.frFiltroStatus = ctk.CTkFrame(self.frPesquisa, bg_color='transparent', fg_color='transparent')
         self.frBusca = ctk.CTkFrame(self.frPesquisa, fg_color='transparent', height=50, border_color='black', 
                                     border_width=2, corner_radius=25)
@@ -40,11 +43,14 @@ class TelaMeusChamados(ctk.CTkFrame):
         self.lbTitulo = ctk.CTkLabel(self.frMain, text='Meus Chamados', font=ctk.CTkFont("Inter", weight='bold', size=30),
                                      **config_label)
         
-        self.lbFiltroStatus = ctk.CTkLabel(self.frPesquisa, text="Prioridade", font=ctk.CTkFont("Inter", weight='bold', size=15),
+        self.lbFiltroStatus = ctk.CTkLabel(self.frPesquisa, text="Status", font=ctk.CTkFont("Inter", weight='bold', size=15),
                                      text_color='gray')
         
         self.vbFiltroStatus = ctk.StringVar()
         self.vbFiltroCategoria = ctk.StringVar()
+            
+        self.rbTodosStatus = ctk.CTkRadioButton(self.frFiltroStatus, text='Todos', **config_radioButton_filtro,
+                                              value='Todos', variable=self.vbFiltroStatus, command=self.filtrar_chamados_status)    
             
         self.rbPendente = ctk.CTkRadioButton(self.frFiltroStatus, text='Pendênte',**config_radioButton_filtro,
                                              value='Pendente', variable=self.vbFiltroStatus, command=self.filtrar_chamados_status)
@@ -55,8 +61,13 @@ class TelaMeusChamados(ctk.CTkFrame):
         self.entryBusca = ctk.CTkEntry(self.frBusca, placeholder_text="Digite aqui o título do chamado", height=40,
                                        font=ctk.CTkFont('Inter', weight='normal', size=15), text_color='black', fg_color='transparent',
                                        bg_color='transparent', border_color='white')
+        self.entryBusca.bind('<KeyRelease>', self.buscar_chamado)
+        self.entryBusca.bind('<BackSpace>', self.buscar_chamado)
+        
         self.lbFiltroCategoria = ctk.CTkLabel(self.frFiltroCategoria, text="Categoria", font=ctk.CTkFont("Inter", weight='bold', size=15),
-                                     text_color='gray') 
+                                     text_color='gray')
+        self.btFiltroTodas = ctk.CTkRadioButton(self.frFiltroCategoria, text='Todas', **config_radioButton_filtro,
+                                              value='Todas', variable=self.vbFiltroCategoria, command=self.filtrar_chamados_categoria)
         self.btFiltroSistema = ctk.CTkRadioButton(self.frFiltroCategoria, text='Sistema', **config_radioButton_filtro,
                                               value='Sistema', variable=self.vbFiltroCategoria, command=self.filtrar_chamados_categoria)
         self.btFiltroEquipamento = ctk.CTkRadioButton(self.frFiltroCategoria, text='Equipamento', **config_radioButton_filtro,
@@ -75,6 +86,8 @@ class TelaMeusChamados(ctk.CTkFrame):
         self.frPesquisa.pack_propagate(0)
         self.lbFiltroStatus.pack()
         self.frFiltroStatus.pack()
+        self.rbTodosStatus.pack(side=ctk.LEFT)
+        self.rbTodosStatus.pack_propagate(0)
         self.rbPendente.pack(side=ctk.LEFT)
         self.rbPendente.pack_propagate(0)
         self.rbConcluido.pack(side=ctk.LEFT, padx=10)
@@ -89,6 +102,7 @@ class TelaMeusChamados(ctk.CTkFrame):
         self.entryBusca.pack(fill=ctk.BOTH,expand=True, side=ctk.LEFT, padx=(0,15), pady=10)
         
         self.lbFiltroCategoria.pack(anchor=ctk.W, padx=5)
+        self.btFiltroTodas.pack(padx=10, pady=(5,0))
         self.btFiltroSistema.pack(padx=10, pady=(5,0))
         self.btFiltroEquipamento.pack(padx=10, pady=(5,0))
         self.btFiltroSoftware.pack(padx=10,pady=(5,0))
@@ -163,6 +177,19 @@ class TelaMeusChamados(ctk.CTkFrame):
             ctk.CTkLabel(self.frChamados, text='Nenhum Chamado Existente!', font=ctk.CTkFont("Inter", weight='bold', size=25),
                          text_color='gray').pack(anchor=ctk.S)
             
+    def buscar_chamado(self, event=None):
+        self.ocultar_chamados()
+        print(event.keysym)
+        pesquisa = self.entryBusca.get()
+        if event.keysym.lower() in self.ALFANUMERIC and len(pesquisa)>0:
+            for chamado in self.MeusChamado:
+                print(pesquisa)
+                check = re.search(f"^{pesquisa.lower()}", chamado.chamado.titulo.lower())
+                print(check)
+                if check:
+                    chamado.carregar_tela()
+        
+    
     def limpar_frChamados(self):
         for w in self.frChamados.winfo_children():
             w.destroy()

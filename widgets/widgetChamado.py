@@ -72,7 +72,7 @@ class WidgetChamado(ctk.CTkFrame):
             self.lbDataAtendimento = ctk.CTkLabel(self.frBottomCol1, text=atendimento.data_atendimento.strftime('%d-%m-%Y %H:%M'), **config_label_dados)
         if self.root.usuario_logado.get_privilegio() in ('Administrador', 'Suporte'):
             self.btAtualizar.configure(text='Atender')
-            self.btAtualizar.configure(command=self.carregar_tela_atenderChamado)
+            self.btAtualizar.configure(command=self.exibir_telaAtenderChamado)
             
         
     def carregar_widgets(self):
@@ -144,7 +144,7 @@ class WidgetChamado(ctk.CTkFrame):
     def carregar_tela_atualizarChamado(self):
         TelaAtualizarChamado(self.root,self.chamado, self.root.PRIVILEGIO)
    
-    def carregar_tela_atenderChamado(self):
+    def exibir_telaAtenderChamado(self):
         TelaAtenderChamado(self.root,self.chamado)
    
     def ocultar_informacoes(self):

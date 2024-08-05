@@ -10,7 +10,7 @@ def adicionar_setor(nome_setor):
             return {'mensagem':'Setor cadastrado com sucesso!', 'tipo':'sucesso'}
         else: return {'mensagem':'O nome do setor precisa conter 3 ou mais caracteres!', 'tipo':'info'}
             
-    else: return {'mensagem':'O setor ja existe', 'tipo':'aviso'}
+    else: return {'mensagem':'O setor ja existe', 'tipo':'alerta'}
     
 
 def selecionar_todos_setores():

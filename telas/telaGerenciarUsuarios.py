@@ -42,7 +42,7 @@ class TelaGerenciarUsuarios(ctk.CTkFrame):
                                        font=ctk.CTkFont('Inter', weight='normal', size=15), text_color='black', fg_color='transparent',
                                        bg_color='transparent', border_color='white')
         
-        self.carregar_dados_usuarios()
+        self.consultar_usuarios()
         
     def carregar_widgets(self):
         self.frMain.pack(expand=True, fill=ctk.BOTH, padx=10, pady=10)
@@ -55,10 +55,10 @@ class TelaGerenciarUsuarios(ctk.CTkFrame):
         self.entryBusca.pack(fill=ctk.BOTH,expand=True, side=ctk.LEFT, padx=(0,15), pady=10)
         
 
-        self.carregar_usuarios()
+        self.carregar_widgetUsuario()
         
         
-    def carregar_dados_usuarios(self):
+    def consultar_usuarios(self):
         if len(self.todosUsuarios) > 0:
             self.todosUsuarios = []
         
@@ -66,21 +66,25 @@ class TelaGerenciarUsuarios(ctk.CTkFrame):
             self.todosUsuarios.append(WidgetUsuario(self.frUsuarios, self.root, usuario))
         
             
-    def carregar_usuarios(self):
-        if len(self.frUsuarios.winfo_children())>0:
-            for w in self.frUsuarios.winfo_children():
-                w.destroy()
-                
+    def carregar_widgetUsuario(self):
+        
+        self.ocultar_widgetUsuario()
+        
         if len(self.todosUsuarios)>0:
             for usuario in self.todosUsuarios:
                 usuario.carregar_tela()
-                
-    def atualizar_dados(self):
-        while True:
-            if len(self.todosUsuarios) != usuarioCRUD.quantidade_usuarios():
-                self.carregar_dados_usuarios()
-                self.carregar_usuarios()
+             
+    def ocultar_widgetUsuario(self):
+        if len(self.todosUsuarios)>0:
+            for usuario in self.todosUsuarios:
+                if usuario.winfo_viewable():
+                    usuario.pack_fortet()
+                    
+    # def atualizar_dados(self):
+    #     while True:
+    #         if len(self.todosUsuarios) != usuarioCRUD.quantidade_usuarios():
+    #             self.consultar_usuarios()
+    #             self.carregar_widgetUsuario()
 
-                 
     def carregar_tela(self):
         self.pack(fill=ctk.BOTH, expand=True)

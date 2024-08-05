@@ -3,9 +3,11 @@ from assets.icons.icone import iconLupa
 from PIL import Image
 from widgets.widgetChamado import WidgetChamado
 from crud import chamadoCRUD, atendimentoCRUD
-from models.model import Privilegio
+import re
 
 class TelaGerenciarChamados(ctk.CTkFrame):
+    ALFANUMERIC = ['a','b','c','d','e','f','g','h','j','k','l','m','n','o','p','q','s','t','u','v','w',
+                    'x','y','z','1','2','3','4','5','6','7','8','9','.',',','space','backspace','return']
     def __init__(self, master, root):
         super().__init__(master)
         self.root = root
@@ -28,7 +30,7 @@ class TelaGerenciarChamados(ctk.CTkFrame):
         icon_lupa = ctk.CTkImage(Image.open(iconLupa), size=(24,24))
         
         self.frMain = ctk.CTkFrame(self, bg_color='transparent', fg_color='transparent')
-        self.frPesquisa = ctk.CTkFrame(self.frMain, bg_color='transparent', fg_color='transparent')
+        self.frPesquisa = ctk.CTkFrame(self.frMain, bg_color='transparent', fg_color='transparent', height=120)
         self.frFiltroStatus = ctk.CTkFrame(self.frPesquisa, bg_color='transparent', fg_color='transparent')
         self.frBusca = ctk.CTkFrame(self.frPesquisa, fg_color='transparent', height=50, border_color='black', 
                                     border_width=2, corner_radius=25)
@@ -56,6 +58,8 @@ class TelaGerenciarChamados(ctk.CTkFrame):
         self.entryBusca = ctk.CTkEntry(self.frBusca, placeholder_text="Digite aqui o título do chamado", height=40,
                                        font=ctk.CTkFont('Inter', weight='normal', size=15), text_color='black', fg_color='transparent',
                                        bg_color='transparent', border_color='white')
+        self.entryBusca.bind('<KeyRelease>', self.buscar_chamado)
+        self.entryBusca.bind('<BackSpace>', self.buscar_chamado)
         self.lbFiltroCategoria = ctk.CTkLabel(self.frFiltroCategoria, text="Categoria", font=ctk.CTkFont("Inter", weight='bold', size=15),
                                      text_color='gray') 
         self.btFiltroSistema = ctk.CTkRadioButton(self.frFiltroCategoria, text='Sistema', **config_radioButton_filtro,
@@ -151,6 +155,19 @@ class TelaGerenciarChamados(ctk.CTkFrame):
             ctk.CTkLabel(self.frChamados, text='Nenhum Chamado Existente!', font=ctk.CTkFont("Inter", weight='bold', size=25),
                          text_color='gray').pack(anchor=ctk.S)
         
+    def buscar_chamado(self, event=None):
+        self.ocultar_chamados()
+        print(event.keysym)
+        pesquisa = self.entryBusca.get()
+        if event.keysym.lower() in self.ALFANUMERIC:
+            for chamado in self.todosChamados:
+                check = re.search(f"^{pesquisa.lower()}", chamado.chamado.titulo.lower())
+                print(len(pesquisa))
+                if check:
+                    chamado.carregar_tela()
+                elif len(pesquisa) == 0:
+                    chamado.carregar_tela()
+    
     def filtrar_chamados_status(self):
         categoria = self.vbFiltroCategoria.get()
         status = self.vbFiltroStatus.get()

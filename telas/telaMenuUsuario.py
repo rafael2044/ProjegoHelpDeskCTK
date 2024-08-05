@@ -1,17 +1,18 @@
 import customtkinter as ctk
 from assets.icons.icone import iconUsuario, iconSair
 from PIL import Image
-
+import pywinstyles
 
 class TelaMenuUsuario(ctk.CTkFrame):
     def __init__(self, master, button):
-        super().__init__(master, corner_radius=0, bg_color='#ced4da', fg_color='#ced4da')
+        super().__init__(master, corner_radius=20, bg_color='#000001', fg_color='#ced4da')
         self.master=master
         self.button=button
         self.criar_widgets()
         self.carregar_widgets()
         self.carregar_tela()
-
+        pywinstyles.set_opacity(self, color="#000001")
+        
         
     def criar_widgets(self):
     

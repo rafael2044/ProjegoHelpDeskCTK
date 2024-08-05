@@ -109,7 +109,7 @@ class TelaPrincipal(ctk.CTk):
         #CRIAÇÃO DO MENU DE USUARIO COM PRIVILEGIO SUPORTE OU ADMINISTRADOR
         if self.PRIVILEGIO in (Privilegio.get_privilegios_name()[:2]):
             self.btGerenciarChamados = ctk.CTkButton(self.frMenu, text="Gerenciar Chamados", **config_button,
-                                        anchor=ctk.W, command=lambda:self.exibir_telaGerenciarChamados())
+                                        anchor=ctk.W,font=ctk.CTkFont('Inter', size=20),  command=lambda:self.exibir_telaGerenciarChamados())
         
     def carregar_widgets(self):
         self.frMain.pack(fill=ctk.BOTH, expand=True)

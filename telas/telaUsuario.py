@@ -34,6 +34,7 @@ class TelaUsuario(ctk.CTkFrame):
         self.lbAlterarSenha = ctk.CTkLabel(self, text='Alterar Senha', **config_label)
         self.entrySenhaAtual = ctk.CTkEntry(self, placeholder_text='Senha Atual', show='*', **config_entry, state=ctk.DISABLED)
         self.entrySenhaNova = ctk.CTkEntry(self, placeholder_text='Nova Senha', show='*', **config_entry)
+        self.entryConfirmarSenha = ctk.CTkEntry(self, placeholder_text='Confirmar Senha', show='*', **config_entry)
         self.btAlterarSenha = ctk.CTkButton(self, text='Alterar Senha', command=self.alterar_senha, **config_button)
         
     def carregar_widgets(self):
@@ -44,57 +45,67 @@ class TelaUsuario(ctk.CTkFrame):
         ctk.CTkFrame(self, height=2, fg_color="#f2f2f2").pack(fill=ctk.X, padx=20, pady=30)
         self.lbAlterarSenha.pack(anchor=ctk.W, padx=20, pady=(0,30))
         self.entrySenhaAtual.pack(fill=ctk.X, padx=20, pady=(0,20))
-        self.entrySenhaNova.pack(fill=ctk.X, padx=20)
+        self.entrySenhaNova.pack(fill=ctk.X, padx=20, pady=(0,20))
+        self.entryConfirmarSenha.pack(fill=ctk.X, padx=20)
         self.btAlterarSenha.pack(anchor=ctk.W, padx=20, pady=20)
     
     def atualizar_nome(self):
         novo_nome = self.entryNome.get()
-        if novo_nome != self.usuario_logado.nome_usuario:
-            self.usuario_logado.nome_usuario = novo_nome
+        if novo_nome != self.usuario_logado.nome:
+            self.usuario_logado.nome = novo_nome
             self.usuario_logado.save()
             try:
-                thead = threading.Thread(target=lambda : WidgetAlerta(self, 'Nome alterado com Sucesso!', 'sucesso'))
+                thead = threading.Thread(target=lambda : WidgetAlerta(self.master, 'Nome alterado com Sucesso!', 'sucesso'))
                 thead.start()
             except Exception as e:
                 pass
         else:
             try:
-                thead = threading.Thread(target=lambda : WidgetAlerta(self,'O novo nome não pode ser igual ao atual!', 'alerta'))
+                thead = threading.Thread(target=lambda : WidgetAlerta(self.master,'O novo nome não pode ser igual ao atual!', 'alerta'))
                 thead.start()
             except Exception as e:
                 pass
             
     def alterar_senha(self):
         nova_senha = self.entrySenhaNova.get()
+        confirmar_senha = self.entryConfirmarSenha.get()
         
-        if len(nova_senha) >= 4:
-            if self.usuario_logado.senha_usuario != nova_senha:
-                self.usuario_logado.senha_usuario = nova_senha
-                self.usuario_logado.save()
-                self.entrySenhaAtual.delete('0', ctk.END)
-                self.entrySenhaNova.delete('0', ctk.END)
-                try:
-                    thead = threading.Thread(target=lambda : WidgetAlerta(self, 'Senha alterada com Sucesso!', 'sucesso'))
-                    thead.start()
-                except Exception as e:
-                    pass
+        if len(nova_senha) >= 3:
+            if nova_senha == confirmar_senha:
+                if self.usuario_logado.senha != nova_senha:
+                    self.usuario_logado.senha = nova_senha
+                    self.usuario_logado.save()
+                    self.entrySenhaAtual.delete('0', ctk.END)
+                    self.entrySenhaNova.delete('0', ctk.END)
+                    self.entryConfirmarSenha.delete('0', ctk.END)
+                    try:
+                        thead = threading.Thread(target=lambda : WidgetAlerta(self.master, 'Senha alterada com Sucesso!', 'sucesso'))
+                        thead.start()
+                    except Exception as e:
+                        pass
+                else:
+                    try:
+                        thead = threading.Thread(target=lambda : WidgetAlerta(self.master, 'A senha precisa ser diferente da atual!', 'alerta'))
+                        thead.start()
+                    except Exception as e:
+                        pass
             else:
                 try:
-                    thead = threading.Thread(target=lambda : WidgetAlerta(self, 'A senha precisa ser diferente da atual!', 'alerta'))
+                    thead = threading.Thread(target=lambda : WidgetAlerta(self.master, 'A nova senha e a senha de confirmação precisam se iguais!', 'alerta'))
                     thead.start()
                 except Exception as e:
                     pass
                 
         else:
             try:
-                thead = threading.Thread(target=lambda : WidgetAlerta(self, 'A senha precisa conter 4 ou mais caracteres!', 'info'))
+                thead = threading.Thread(target=lambda : WidgetAlerta(self.master, 'A senha precisa conter 4 ou mais caracteres!', 'info'))
                 thead.start()
             except Exception as e:
                 pass
             
 
     def carregar_tela(self):
-        self.place(relx=0.5, rely=0.5, relwidth=0.5, relheight=0.7, anchor=ctk.CENTER)
+        self.place(relx=0.5, rely=0.5, relwidth=0.5, anchor=ctk.CENTER)
         
         
         
